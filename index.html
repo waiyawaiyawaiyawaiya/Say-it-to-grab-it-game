@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Say to Get It! - English Food Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            dark: '#0b1120'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slight': 'bounceSlight 2.2s infinite ease-in-out',
+                        'spin-slow': 'spin 10s linear infinite',
+                        'steam': 'steamRise 2.4s infinite ease-out'
+                    },
+                    keyframes: {
+                        bounceSlight: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-6px)' }
+                        },
+                        steamRise: {
+                            '0%': { opacity: '0', transform: 'translateY(0) scale(0.8)' },
+                            '50%': { opacity: '0.7' },
+                            '100%': { opacity: '0', transform: 'translateY(-22px) scale(1.3)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at 50% 15%, #1e293b 0%, #0b1120 100%);
+            min-height: 100vh;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .mic-wave-ring {
+            position: absolute;
+            border-radius: 9999px;
+            border: 2px solid rgba(249, 115, 22, 0.5);
+            animation: pulseWave 1.8s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .mic-wave-ring:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .mic-wave-ring:nth-child(3) {
+            animation-delay: 1.2s;
+        }
+
+        @keyframes pulseWave {
+            0% { width: 100%; height: 100%; opacity: 0.9; transform: scale(1); }
+            100% { width: 230%; height: 230%; opacity: 0; transform: scale(1.6); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen selection:bg-orange-500 selection:text-white">
+
+    <header class="w-full border-b border-slate-800/80 bg-slate-950/70 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/25">
+                    <i class="fa-solid fa-graduation-cap text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-display font-extrabold tracking-tight bg-gradient-to-r from-orange-400 via-amber-300 to-yellow-200 bg-clip-text text-transparent">
+                        Say to Get It!
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium">English Speaking Quest & Culinary Studio 🎙️✨</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <!-- Current Student Info Badge -->
+                <div id="studentBadgeHeader" onclick="openStudentModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 hover:border-amber-500/50 cursor-pointer transition-all text-xs">
+                    <i class="fa-solid fa-user-graduate text-amber-400"></i>
+                    <div class="text-left leading-tight">
+                        <div id="headerStudentName" class="font-bold text-white max-w-[120px] sm:max-w-[160px] truncate">Guest Student</div>
+                        <div id="headerStudentDetail" class="text-[10px] text-slate-400">No. -- | Room --</div>
+                    </div>
+                </div>
+
+                <!-- Teacher Portal Switch Button -->
+                <button onclick="openTeacherPortalAuth()" class="px-3 py-2 rounded-xl bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 hover:text-white transition-all text-xs font-semibold flex items-center gap-1.5 border border-indigo-700/50 shadow-sm" title="Teacher / Admin Submissions Portal">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span class="hidden sm:inline">Teacher Portal</span>
+                </button>
+
+                <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-emerald-400">
+                    <i class="fa-solid fa-language"></i>
+                    <span>English (US)</span>
+                </div>
+                <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-amber-400 transition-all text-sm flex items-center gap-1.5 border border-slate-700/50" title="Mute/Unmute Audio">
+                    <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+                <button onclick="openResetModal()" class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-rose-950/50 hover:text-rose-400 text-slate-300 transition-all text-xs font-medium flex items-center gap-1.5 border border-slate-700/50" title="Restart Quest">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline">New Game</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-6 flex flex-col gap-6">
+
+        <div class="glass-panel rounded-3xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-56 h-56 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                <div class="text-center md:text-left space-y-1.5 max-w-lg">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/15 border border-orange-500/30 text-orange-400 text-xs font-semibold uppercase tracking-wider">
+                        <i class="fa-solid fa-bullhorn"></i> English Speaking Mission
+                    </div>
+                    <h2 class="text-2xl md:text-3xl font-display font-extrabold text-white tracking-tight">
+                        Order <span class="text-amber-400">3 Delicious Dishes</span> by Voice!
+                    </h2>
+                    <p class="text-sm text-slate-300 font-normal leading-relaxed">
+                        <strong class="text-white font-semibold">Rules:</strong> Tap the microphone and clearly speak any food or beverage in English. If AI confirms it is edible food, your dish is served and submitted to the teacher's portfolio. Win 3 plates to complete the quest!
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-3 bg-slate-900/80 p-3.5 rounded-2xl border border-slate-800 shadow-inner">
+                    <div class="text-right mr-2">
+                        <div class="text-xs text-slate-400 font-medium">Plates Served</div>
+                        <div class="text-2xl font-black text-amber-400 leading-none">
+                            <span id="scoreText">0</span><span class="text-slate-500 text-lg">/3</span>
+                        </div>
+                    </div>
+
+                    <div id="plateSlot1" class="w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 border-dashed border-slate-700 bg-slate-800/60 flex items-center justify-center transition-all duration-500 relative overflow-hidden group">
+                        <i class="fa-solid fa-utensils text-slate-600 text-xl group-hover:scale-110 transition-transform"></i>
+                        <div class="plate-badge hidden absolute inset-0 bg-cover bg-center"></div>
+                        <span class="plate-number absolute bottom-1 right-1.5 text-[10px] font-bold text-slate-500">1</span>
+                    </div>
+
+                    <div id="plateSlot2" class="w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 border-dashed border-slate-700 bg-slate-800/60 flex items-center justify-center transition-all duration-500 relative overflow-hidden group">
+                        <i class="fa-solid fa-utensils text-slate-600 text-xl group-hover:scale-110 transition-transform"></i>
+                        <div class="plate-badge hidden absolute inset-0 bg-cover bg-center"></div>
+                        <span class="plate-number absolute bottom-1 right-1.5 text-[10px] font-bold text-slate-500">2</span>
+                    </div>
+
+                    <div id="plateSlot3" class="w-14 h-14 md:w-16 md:h-16 rounded-2xl border-2 border-dashed border-slate-700 bg-slate-800/60 flex items-center justify-center transition-all duration-500 relative overflow-hidden group">
+                        <i class="fa-solid fa-utensils text-slate-600 text-xl group-hover:scale-110 transition-transform"></i>
+                        <div class="plate-badge hidden absolute inset-0 bg-cover bg-center"></div>
+                        <span class="plate-number absolute bottom-1 right-1.5 text-[10px] font-bold text-slate-500">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <div class="lg:col-span-6 flex flex-col gap-4">
+                <div class="glass-panel rounded-3xl p-6 flex flex-col items-center text-center relative overflow-hidden shadow-xl flex-1 justify-between">
+                    
+                    <div class="w-full flex items-center justify-between pb-3 border-b border-slate-800/80">
+                        <span class="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                            <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span id="statusLabel">Microphone ready</span>
+                        </span>
+                        <span class="text-xs text-amber-400 font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                            ESL Speaking Lab
+                        </span>
+                    </div>
+
+                    <div class="my-6 relative flex items-center justify-center">
+                        <div id="micRings" class="hidden absolute w-28 h-28 pointer-events-none flex items-center justify-center">
+                            <div class="mic-wave-ring"></div>
+                            <div class="mic-wave-ring"></div>
+                            <div class="mic-wave-ring"></div>
+                        </div>
+
+                        <button id="micBtn" onclick="toggleVoiceRecording()" class="relative z-10 w-28 h-28 md:w-32 md:h-32 rounded-full bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-400 hover:from-orange-500 hover:to-amber-300 text-white shadow-xl shadow-orange-500/30 flex flex-col items-center justify-center transition-all duration-300 transform active:scale-95 group cursor-pointer focus:outline-none focus:ring-4 focus:ring-orange-500/30">
+                            <i id="micIcon" class="fa-solid fa-microphone text-3xl md:text-4xl transition-transform group-hover:scale-110"></i>
+                            <span id="micBtnText" class="text-xs font-bold mt-2 tracking-wide text-white/95 uppercase">Tap to Speak</span>
+                        </button>
+                    </div>
+
+                    <div class="w-full space-y-3">
+                        <div class="text-left">
+                            <label class="text-xs font-medium text-slate-300 flex items-center justify-between">
+                                <span>Spoken Order Transcript:</span>
+                                <span id="wordCounter" class="text-[11px] text-slate-400">Waiting for speech...</span>
+                            </label>
+                            
+                            <div class="mt-1 relative">
+                                <input id="orderInput" type="text" placeholder="Speak into the microphone or type your order..." 
+                                    class="w-full px-4 py-3.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 text-sm font-medium transition-all">
+                                
+                                <button id="clearInputBtn" onclick="clearOrderInput()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 text-xs">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-1">
+                            <button id="orderSubmitBtn" onclick="submitFoodOrder()" class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-bell-concierge"></i>
+                                <span>Submit Order to AI Chef!</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6 flex flex-col">
+                <div class="glass-panel rounded-3xl p-6 shadow-xl flex flex-col justify-between flex-1 relative overflow-hidden">
+                    
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-kitchen-set text-orange-400"></i>
+                            <span class="text-sm font-semibold text-white">AI Gourmet Kitchen & Evaluator</span>
+                        </div>
+                        <div id="kitchenStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 font-medium">
+                            Awaiting Order
+                        </div>
+                    </div>
+
+                    <div class="my-auto py-4 flex flex-col items-center justify-center min-h-[340px]">
+                        
+                        <div id="dishIdleState" class="flex flex-col items-center justify-center text-center p-6 space-y-3">
+                            <div class="w-24 h-24 rounded-full bg-slate-800/80 border-2 border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-3xl">
+                                <i class="fa-solid fa-bowl-food animate-bounce-slight"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <h3 class="text-base font-semibold text-slate-300">No dishes served yet</h3>
+                                <p class="text-xs text-slate-500 max-w-xs">Speak your favorite food in English, and watch the AI Chef create and plate it live!</p>
+                            </div>
+                        </div>
+
+                        <div id="dishLoadingState" class="hidden flex flex-col items-center justify-center text-center p-6 space-y-4">
+                            <div class="relative w-28 h-28 flex items-center justify-center">
+                                <div class="absolute inset-0 rounded-full border-4 border-orange-500/20 border-t-orange-500 animate-spin"></div>
+                                <i class="fa-solid fa-fire-burner text-3xl text-amber-400 animate-pulse"></i>
+                                <span class="absolute -top-2 text-xl animate-steam">💨</span>
+                            </div>
+                            <div class="space-y-1">
+                                <h3 id="cookingPromptTitle" class="text-base font-bold text-white">Chef is cooking your order...</h3>
+                                <p id="cookingSubtext" class="text-xs text-orange-400 animate-pulse">Analyzing English phrasing & rendering culinary photography</p>
+                            </div>
+                        </div>
+
+                        <div id="dishResultState" class="hidden w-full flex flex-col items-center">
+                            <div class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl overflow-hidden shadow-2xl border-4 border-slate-800 bg-black group">
+                                <img id="dishResultImg" src="" alt="Food result" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                
+                                <div id="verdictBadge" class="absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md flex items-center gap-1.5">
+                                </div>
+
+                                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 pt-6 text-left">
+                                    <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Your Spoken Order:</div>
+                                    <div id="dishOrderTitle" class="text-sm font-bold text-white truncate">Dish Name</div>
+                                </div>
+                            </div>
+
+                            <div id="chefVerdictBox" class="w-full mt-4 p-3.5 rounded-2xl text-left border flex items-start gap-3 text-xs">
+                                <div id="chefAvatar" class="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold">
+                                    👨‍🍳
+                                </div>
+                                <div class="space-y-0.5">
+                                    <div id="chefVerdictTitle" class="font-bold">Chef's Culinary Verdict:</div>
+                                    <div id="chefVerdictMsg" class="text-slate-300 font-light leading-relaxed"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+                        <span><i class="fa-solid fa-sparkles text-amber-500"></i> AI Powered ESL Vocabulary Judge</span>
+                        <span id="attemptCounter">Total Orders: 0</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel rounded-3xl p-5 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <h3 class="text-sm font-bold text-white">Your Completed Banquet (Target: 3 Plates)</h3>
+                </div>
+                <span class="text-xs text-slate-400"><span id="neededRemaining" class="text-amber-400 font-bold">3</span> more needed to win</span>
+            </div>
+
+            <div id="dishesGallery" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="rounded-2xl border-2 border-dashed border-slate-800 p-4 flex flex-col items-center justify-center text-center h-32 bg-slate-900/30 text-slate-600">
+                    <i class="fa-solid fa-plate-wheat text-2xl mb-1"></i>
+                    <span class="text-xs font-light">Dish Slot 1</span>
+                </div>
+                <div class="rounded-2xl border-2 border-dashed border-slate-800 p-4 flex flex-col items-center justify-center text-center h-32 bg-slate-900/30 text-slate-600">
+                    <i class="fa-solid fa-plate-wheat text-2xl mb-1"></i>
+                    <span class="text-xs font-light">Dish Slot 2</span>
+                </div>
+                <div class="rounded-2xl border-2 border-dashed border-slate-800 p-4 flex flex-col items-center justify-center text-center h-32 bg-slate-900/30 text-slate-600">
+                    <i class="fa-solid fa-plate-wheat text-2xl mb-1"></i>
+                    <span class="text-xs font-light">Dish Slot 3</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="victoryModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 md:p-8 text-center border-2 border-amber-500/40 shadow-2xl relative overflow-hidden animate-bounce-slight">
+            <div class="absolute -top-20 inset-x-0 h-40 bg-gradient-to-b from-amber-500/30 to-transparent blur-2xl"></div>
+
+            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-950 flex items-center justify-center text-4xl shadow-xl shadow-amber-500/40 mb-4">
+                🏆
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-display font-extrabold text-white mb-1">Quest Completed!</h2>
+            <p class="text-amber-400 text-sm font-semibold mb-3">Master English Culinary Speaker! 🎉</p>
+            <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                Outstanding English pronunciation and vocabulary! Your 3-course banquet has been prepared and automatically saved to the teacher's portfolio.
+            </p>
+
+            <!-- Auto submission confirmation banner (no screenshot needed) -->
+            <div class="mb-5 p-3 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-left flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="text-xs">
+                    <div class="font-bold text-emerald-300">Submitted to Teacher Portfolio!</div>
+                    <div class="text-slate-300 text-[11px]">Recorded for: <span id="victoryStudentName" class="font-semibold text-white">Student</span> (<span id="victoryStudentDetail" class="text-slate-400">No. --</span>)</div>
+                </div>
+            </div>
+
+            <div id="winningDishesCollage" class="flex justify-center gap-3 mb-6">
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="restartGame()" class="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-xl shadow-orange-500/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Play Again (New Quest)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="studentRegistrationModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="glass-panel max-w-md w-full rounded-3xl p-6 md:p-8 text-center border-2 border-orange-500/40 shadow-2xl relative overflow-hidden">
+            <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center text-3xl shadow-lg shadow-orange-500/30 mb-4">
+                <i class="fa-solid fa-id-card-clip"></i>
+            </div>
+            <h2 class="text-2xl font-display font-extrabold text-white">Student Identification</h2>
+            <p class="text-xs text-slate-400 mt-1 mb-5">
+                Please enter your full name and student number so your teacher can verify and score your completed English speaking assignment.
+            </p>
+
+            <form onsubmit="handleStudentRegistration(event)" class="space-y-3.5 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">
+                        Full Name (ชื่อ - นามสกุล) <span class="text-rose-400">*</span>
+                    </label>
+                    <input id="regStudentName" type="text" required placeholder="Enter student full name"
+                        class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">
+                            Student No. (เลขที่) <span class="text-rose-400">*</span>
+                        </label>
+                        <input id="regStudentNo" type="text" required placeholder="e.g. 15"
+                            class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">
+                            Class / Room (ห้องเรียน) <span class="text-rose-400">*</span>
+                        </label>
+                        <input id="regStudentClass" type="text" required placeholder="e.g. M.1/2"
+                            class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700 text-white text-sm focus:outline-none focus:border-amber-400 transition-all">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-2 py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Start English Speaking Quest</span>
+                </button>
+            </form>
+
+            <!-- Dedicated Teacher Access Section (Separated from Student Section) -->
+            <div class="mt-6 pt-5 border-t border-slate-800/90 flex flex-col items-center text-center">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[11px] font-semibold mb-2">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>สำหรับครูผู้สอน (Teacher & Admin)</span>
+                </div>
+                <p class="text-[11px] text-slate-400 mb-3 leading-relaxed">
+                    คุณครูสามารถกดเข้าสู่ระบบคลังผลงานเพื่อดูความก้าวหน้า ตรวจจานอาหาร และ Export ผลการเรียนรู้ได้โดยไม่ต้องกรอกข้อมูลนักเรียน
+                </p>
+                <button type="button" onclick="openTeacherPortalAuthFromFirstPage()" class="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 hover:from-indigo-900 hover:to-indigo-900 border border-indigo-500/50 hover:border-indigo-400 text-indigo-200 hover:text-white font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-950/60">
+                    <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                    <span>เข้าใช้งานระบบสำหรับครูผู้สอน (Teacher Portal)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="teacherAuthModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div class="glass-panel max-w-sm w-full rounded-3xl p-6 text-center border border-indigo-500/40 shadow-2xl space-y-4">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-white">Teacher Access</h3>
+                <p class="text-xs text-slate-400 mt-1">Enter teacher passcode to view student submissions.</p>
+            </div>
+
+            <form onsubmit="handleTeacherLogin(event)" class="space-y-3">
+                <input id="teacherPasscode" type="password" placeholder="Enter teacher passcode" required
+                    class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-400 text-center font-mono">
+                
+                <div class="flex items-center gap-2 pt-1">
+                    <button type="button" onclick="closeTeacherAuthModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">
+                        Cancel
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-all shadow-lg shadow-indigo-600/30">
+                        Unlock Portal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="teacherPortalView" class="hidden fixed inset-0 z-50 bg-slate-950 overflow-y-auto flex flex-col">
+        <div class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-30 px-6 py-4 flex items-center justify-between backdrop-blur-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg shadow-md shadow-indigo-500/25">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        Teacher Portfolio & Student Work Repository
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-mono">Admin View</span>
+                    </h2>
+                    <p class="text-xs text-slate-400">Review verified English food orders, attempts, and audio-generated banquet records.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="exportSubmissionsCSV()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 border border-slate-700 transition-all">
+                    <i class="fa-solid fa-file-arrow-down text-emerald-400"></i>
+                    <span>Export CSV</span>
+                </button>
+                <button onclick="clearAllSubmissionsConfirm()" class="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 text-xs font-semibold flex items-center gap-1.5 border border-rose-800/40 transition-all">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Clear Data</span>
+                </button>
+                <button onclick="closeTeacherPortal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-orange-500/20 transition-all">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Back to Quest</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="max-w-6xl w-full mx-auto p-6 flex flex-col gap-6 flex-1">
+            
+            <!-- Dashboard Metrics -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="glass-panel p-4 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Completed Students</div>
+                        <div id="statTotalStudents" class="text-2xl font-black text-white">0</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-utensils"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Total Dishes Served</div>
+                        <div id="statTotalDishes" class="text-2xl font-black text-emerald-400">0</div>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-4 rounded-2xl flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 font-medium">Avg. Attempts to Complete</div>
+                        <div id="statAvgAttempts" class="text-2xl font-black text-indigo-300">0.0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter and search bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 glass-panel p-3.5 rounded-2xl">
+                <div class="relative w-full sm:w-80">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input id="adminSearchInput" oninput="filterSubmissions()" type="text" placeholder="Search by student name or number..."
+                        class="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-400">
+                </div>
+                <div class="text-xs text-slate-400">
+                    Showing <span id="submissionsCount" class="font-bold text-white">0</span> student submissions
+                </div>
+            </div>
+
+            <!-- Submissions Grid / List -->
+            <div id="submissionsListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-12">
+            </div>
+
+            <div id="emptySubmissionsState" class="hidden text-center py-16 space-y-3 glass-panel rounded-3xl p-8">
+                <div class="w-16 h-16 mx-auto rounded-full bg-slate-800 text-slate-600 flex items-center justify-center text-3xl">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <h4 class="text-base font-bold text-slate-300">No student submissions recorded yet</h4>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">When students order 3 dishes in English, their banquet portfolio will automatically appear here with full culinary photos and voice order logs.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Clear confirmation modal -->
+    <div id="confirmClearSubmissionsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel max-w-sm w-full rounded-3xl p-6 text-center border border-slate-700 shadow-2xl space-y-4">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Clear All Submissions?</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                This will delete all stored student completion records from this session. This action cannot be undone.
+            </p>
+            <div class="flex items-center gap-2.5 pt-2">
+                <button onclick="closeClearModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">
+                    Cancel
+                </button>
+                <button onclick="executeClearSubmissions()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-all shadow-lg shadow-rose-600/30">
+                    Yes, Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmResetModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="glass-panel max-w-sm w-full rounded-3xl p-6 text-center border border-slate-700 shadow-2xl space-y-4">
+            <div class="w-12 h-12 mx-auto rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-arrow-rotate-left"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Restart Game?</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+                All collected dishes and scores in this session will be cleared. Do you want to begin a fresh English speaking quest?
+            </p>
+            <div class="flex items-center gap-2.5 pt-2">
+                <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all">
+                    Cancel
+                </button>
+                <button onclick="confirmResetAction()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-all shadow-lg shadow-rose-600/30">
+                    Yes, Restart
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-slate-700 text-white text-xs font-medium shadow-2xl flex items-center gap-2">
+        <span id="toastIcon">ℹ️</span>
+        <span id="toastMsg">Notification message</span>
+    </div>
+
+    <script>
+        let isAudioEnabled = true;
+        let audioCtx = null;
+
+        const currentStudent = {
+            name: '',
+            studentNo: '',
+            studentClass: '',
+            isRegistered: false
+        };
+
+        // In-memory student work portfolio collection
+        let studentSubmissions = [];
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        const Sound = {
+            playTone(freq, type, duration, gainValue = 0.1) {
+                if (!isAudioEnabled) return;
+                try {
+                    const ctx = getAudioContext();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+                    gain.gain.setValueAtTime(gainValue, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    osc.start();
+                    osc.stop(ctx.currentTime + duration);
+                } catch (e) {
+                    console.warn("Audio synthesis error:", e);
+                }
+            },
+
+            micStart() {
+                this.playTone(523.25, 'sine', 0.15, 0.1);
+                setTimeout(() => this.playTone(659.25, 'sine', 0.2, 0.1), 80);
+            },
+
+            micStop() {
+                this.playTone(659.25, 'sine', 0.15, 0.08);
+                setTimeout(() => this.playTone(523.25, 'sine', 0.15, 0.08), 80);
+            },
+
+            success() {
+                if (!isAudioEnabled) return;
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, now + i * 0.08);
+                    gain.gain.setValueAtTime(0.12, now + i * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + i * 0.08);
+                    osc.stop(now + i * 0.08 + 0.35);
+                });
+            },
+
+            fail() {
+                if (!isAudioEnabled) return;
+                this.playTone(280, 'sawtooth', 0.25, 0.12);
+                setTimeout(() => this.playTone(220, 'sawtooth', 0.35, 0.12), 150);
+            },
+
+            victory() {
+                if (!isAudioEnabled) return;
+                const ctx = getAudioContext();
+                const now = ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 880, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.12 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + idx * 0.12);
+                    osc.stop(now + idx * 0.12 + 0.45);
+                });
+            }
+        };
+
+        function toggleAudio() {
+            isAudioEnabled = !isAudioEnabled;
+            const icon = document.getElementById('soundIcon');
+            if (isAudioEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-amber-400';
+                showToast("🔊 Sound effects turned ON");
+                Sound.playTone(600, 'sine', 0.1);
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+                showToast("🔇 Sound effects turned OFF");
+            }
+        }
+
+        const gameState = {
+            targetScore: 3,
+            currentScore: 0,
+            attempts: 0,
+            successfulDishes: [],
+            isCooking: false,
+            isRecording: false,
+            recognition: null,
+            speechSupported: false
+        };
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn("Web Speech API not supported in this browser.");
+                gameState.speechSupported = false;
+                document.getElementById('statusLabel').textContent = "Speech recognition unsupported (typing enabled)";
+                document.getElementById('statusDot').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                return;
+            }
+
+            try {
+                gameState.speechSupported = true;
+                const recognition = new SpeechRecognition();
+                // Set recognition language to English (US) for English language practice
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = () => {
+                    gameState.isRecording = true;
+                    Sound.micStart();
+                    updateMicUI(true);
+                    document.getElementById('statusLabel').textContent = "Listening... Speak your order in English!";
+                    document.getElementById('statusDot').className = "w-2.5 h-2.5 rounded-full bg-red-500 animate-ping";
+                    document.getElementById('wordCounter').textContent = "Capturing English speech 🎙️";
+                };
+
+                recognition.onresult = (event) => {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    const inputEl = document.getElementById('orderInput');
+                    inputEl.value = transcript;
+                    checkInputState();
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Speech recognition error:", event.error);
+                    gameState.isRecording = false;
+                    updateMicUI(false);
+                    Sound.micStop();
+
+                    if (event.error === 'not-allowed') {
+                        showToast("⚠️ Microphone access denied. Please grant permission or type below.");
+                        document.getElementById('statusLabel').textContent = "Microphone blocked (typing allowed)";
+                        document.getElementById('statusDot').className = "w-2.5 h-2.5 rounded-full bg-rose-500";
+                    } else {
+                        document.getElementById('statusLabel').textContent = "Speech unclear or timed out. Please try again!";
+                        document.getElementById('statusDot').className = "w-2.5 h-2.5 rounded-full bg-amber-500";
+                    }
+                };
+
+                recognition.onend = () => {
+                    gameState.isRecording = false;
+                    updateMicUI(false);
+                    Sound.micStop();
+                    document.getElementById('statusLabel').textContent = "Microphone ready (English US)";
+                    document.getElementById('statusDot').className = "w-2.5 h-2.5 rounded-full bg-emerald-500";
+                    
+                    const text = document.getElementById('orderInput').value.trim();
+                    if (text) {
+                        document.getElementById('wordCounter').textContent = `Heard: "${text}"`;
+                    } else {
+                        document.getElementById('wordCounter').textContent = "No speech detected. Try again!";
+                    }
+                };
+
+                gameState.recognition = recognition;
+            } catch (err) {
+                console.error("Failed to initialize speech recognition:", err);
+                gameState.speechSupported = false;
+            }
+        }
+
+        function toggleVoiceRecording() {
+            if (gameState.isCooking) {
+                showToast("⏳ Chef is currently preparing a dish. Please wait!");
+                return;
+            }
+
+            if (!gameState.speechSupported || !gameState.recognition) {
+                showToast("💡 Browser voice disabled. Please type your English order directly!");
+                document.getElementById('orderInput').focus();
+                return;
+            }
+
+            if (gameState.isRecording) {
+                gameState.recognition.stop();
+            } else {
+                try {
+                    document.getElementById('orderInput').value = '';
+                    checkInputState();
+                    gameState.recognition.start();
+                } catch (e) {
+                    console.warn("Recognition start restart exception:", e);
+                    gameState.recognition.stop();
+                }
+            }
+        }
+
+        function updateMicUI(isRecording) {
+            const micBtn = document.getElementById('micBtn');
+            const micIcon = document.getElementById('micIcon');
+            const micBtnText = document.getElementById('micBtnText');
+            const rings = document.getElementById('micRings');
+
+            if (isRecording) {
+                rings.classList.remove('hidden');
+                micBtn.classList.remove('from-orange-600', 'via-orange-500', 'to-amber-400');
+                micBtn.classList.add('from-red-600', 'via-rose-500', 'to-orange-500', 'ring-4', 'ring-red-500/40');
+                micIcon.className = "fa-solid fa-wave-square text-3xl animate-pulse text-white";
+                micBtnText.textContent = "Listening...";
+            } else {
+                rings.classList.add('hidden');
+                micBtn.classList.add('from-orange-600', 'via-orange-500', 'to-amber-400');
+                micBtn.classList.remove('from-red-600', 'via-rose-500', 'to-orange-500', 'ring-4', 'ring-red-500/40');
+                micIcon.className = "fa-solid fa-microphone text-3xl md:text-4xl text-white";
+                micBtnText.textContent = "Tap to Speak";
+            }
+        }
+
+        function checkInputState() {
+            const text = document.getElementById('orderInput').value.trim();
+            const clearBtn = document.getElementById('clearInputBtn');
+            if (text.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('orderInput').addEventListener('input', checkInputState);
+        document.getElementById('orderInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitFoodOrder();
+            }
+        });
+
+        function clearOrderInput() {
+            document.getElementById('orderInput').value = '';
+            checkInputState();
+            document.getElementById('wordCounter').textContent = "Waiting for speech...";
+        }
+
+        function handleStudentRegistration(e) {
+            e.preventDefault();
+            const name = document.getElementById('regStudentName').value.trim();
+            const no = document.getElementById('regStudentNo').value.trim();
+            const sClass = document.getElementById('regStudentClass').value.trim();
+
+            if (!name || !no || !sClass) {
+                showToast("⚠️ Please fill in all student details.");
+                return;
+            }
+
+            currentStudent.name = name;
+            currentStudent.studentNo = no;
+            currentStudent.studentClass = sClass;
+            currentStudent.isRegistered = true;
+
+            // Update UI elements in header & modal
+            document.getElementById('headerStudentName').textContent = currentStudent.name;
+            document.getElementById('headerStudentDetail').textContent = `No. ${currentStudent.studentNo} | Class: ${currentStudent.studentClass}`;
+            document.getElementById('studentRegistrationModal').classList.add('hidden');
+
+            showToast(`👋 Welcome, ${currentStudent.name}! Ready to order food in English.`);
+        }
+
+        function openStudentModal() {
+            document.getElementById('regStudentName').value = currentStudent.name;
+            document.getElementById('regStudentNo').value = currentStudent.studentNo;
+            document.getElementById('regStudentClass').value = currentStudent.studentClass;
+            document.getElementById('studentRegistrationModal').classList.remove('hidden');
+        }
+
+        function openTeacherPortalAuth() {
+            document.getElementById('teacherPasscode').value = '';
+            document.getElementById('teacherAuthModal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('teacherPasscode').focus(), 100);
+        }
+
+        function openTeacherPortalAuthFromFirstPage() {
+            openTeacherPortalAuth();
+        }
+
+        function closeTeacherAuthModal() {
+            document.getElementById('teacherAuthModal').classList.add('hidden');
+        }
+
+        function handleTeacherLogin(e) {
+            e.preventDefault();
+            const code = document.getElementById('teacherPasscode').value.trim();
+            if (code === 'teachernon15') {
+                closeTeacherAuthModal();
+                // Dismiss the student registration dialog so teacher view is completely unobstructed
+                document.getElementById('studentRegistrationModal').classList.add('hidden');
+                openTeacherPortal();
+            } else {
+                showToast("❌ Incorrect teacher passcode. Please try again.");
+            }
+        }
+
+        function openTeacherPortal() {
+            renderTeacherSubmissions();
+            document.getElementById('teacherPortalView').classList.remove('hidden');
+        }
+
+        function closeTeacherPortal() {
+            document.getElementById('teacherPortalView').classList.add('hidden');
+            // If the student hasn't registered yet, bring back the registration modal
+            if (!currentStudent.isRegistered) {
+                document.getElementById('studentRegistrationModal').classList.remove('hidden');
+            }
+        }
+
+        function clearAllSubmissionsConfirm() {
+            document.getElementById('confirmClearSubmissionsModal').classList.remove('hidden');
+        }
+
+        function closeClearModal() {
+            document.getElementById('confirmClearSubmissionsModal').classList.add('hidden');
+        }
+
+        function executeClearSubmissions() {
+            studentSubmissions = [];
+            closeClearModal();
+            renderTeacherSubmissions();
+            showToast("🗑️ All student submissions cleared.");
+        }
+
+        function filterSubmissions() {
+            const query = (document.getElementById('adminSearchInput').value || '').toLowerCase().trim();
+            renderTeacherSubmissions(query);
+        }
+
+        function renderTeacherSubmissions(query = '') {
+            const container = document.getElementById('submissionsListContainer');
+            const emptyState = document.getElementById('emptySubmissionsState');
+            
+            const filtered = studentSubmissions.filter(sub => {
+                if (!query) return true;
+                return sub.studentName.toLowerCase().includes(query) ||
+                       sub.studentNo.toLowerCase().includes(query) ||
+                       sub.studentClass.toLowerCase().includes(query);
+            });
+
+            // Update stats
+            document.getElementById('statTotalStudents').textContent = studentSubmissions.length;
+            const totalDishes = studentSubmissions.reduce((acc, curr) => acc + (curr.dishes?.length || 0), 0);
+            document.getElementById('statTotalDishes').textContent = totalDishes;
+            const avgAttempts = studentSubmissions.length > 0 
+                ? (studentSubmissions.reduce((acc, curr) => acc + (curr.attempts || 0), 0) / studentSubmissions.length).toFixed(1)
+                : '0.0';
+            document.getElementById('statAvgAttempts').textContent = avgAttempts;
+            document.getElementById('submissionsCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            container.innerHTML = '';
+
+            filtered.forEach((sub, index) => {
+                const card = document.createElement('div');
+                card.className = "glass-panel p-5 rounded-3xl border border-slate-800 shadow-xl flex flex-col justify-between";
+                
+                let dishesHtml = '';
+                (sub.dishes || []).forEach((dish, dIdx) => {
+                    dishesHtml += `
+                        <div class="flex items-center gap-3 p-2 rounded-2xl bg-slate-900/90 border border-slate-800">
+                            <img src="${dish.imageUrl}" alt="${dish.dishName}" class="w-12 h-12 rounded-xl object-cover border border-slate-700">
+                            <div class="overflow-hidden flex-1 text-left">
+                                <div class="text-[10px] text-amber-400 font-bold uppercase">Dish #${dIdx + 1}</div>
+                                <div class="text-xs font-bold text-white truncate">${dish.dishName}</div>
+                                <div class="text-[10px] text-slate-400 truncate">${dish.category || 'Culinary Food'}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-start justify-between border-b border-slate-800/80 pb-3">
+                            <div class="text-left">
+                                <div class="text-base font-bold text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                                    <span>${sub.studentName}</span>
+                                </div>
+                                <div class="text-xs text-slate-400 mt-0.5">
+                                    Student No: <span class="text-amber-400 font-semibold">${sub.studentNo}</span> | Class: <span class="text-slate-300 font-semibold">${sub.studentClass}</span>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                3/3 Completed
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            ${dishesHtml}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left text-slate-500"></i> ${sub.timestamp}
+                        </span>
+                        <span class="font-medium text-slate-300">
+                            Total Orders: <strong class="text-amber-400">${sub.attempts}</strong>
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function exportSubmissionsCSV() {
+            if (studentSubmissions.length === 0) {
+                showToast("⚠️ No student records to export yet.");
+                return;
+            }
+
+            let csv = "Timestamp,Student Name,Student Number,Class,Total Orders,Dish 1,Dish 2,Dish 3\n";
+            studentSubmissions.forEach(sub => {
+                const d1 = (sub.dishes[0]?.dishName || '').replace(/"/g, '""');
+                const d2 = (sub.dishes[1]?.dishName || '').replace(/"/g, '""');
+                const d3 = (sub.dishes[2]?.dishName || '').replace(/"/g, '""');
+                csv += `"${sub.timestamp}","${sub.studentName}","${sub.studentNo}","${sub.studentClass}","${sub.attempts}","${d1}","${d2}","${d3}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `SayToGetIt_Student_Banquet_Submissions_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("📥 Exported submissions report as CSV!");
+        }
+
+        function saveStudentSubmissionToTeacherRepository() {
+            const submissionRecord = {
+                id: 'sub_' + Date.now(),
+                studentName: currentStudent.name || 'Anonymous Student',
+                studentNo: currentStudent.studentNo || '-',
+                studentClass: currentStudent.studentClass || '-',
+                attempts: gameState.attempts,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+                dishes: gameState.successfulDishes.map(d => ({
+                    dishName: d.dishName,
+                    imageUrl: d.imageUrl,
+                    category: d.category,
+                    comment: d.comment
+                }))
+            };
+
+            // Store into repository
+            studentSubmissions.unshift(submissionRecord);
+
+            // Update victory modal student banner
+            document.getElementById('victoryStudentName').textContent = currentStudent.name || 'Student';
+            document.getElementById('victoryStudentDetail').textContent = `No. ${currentStudent.studentNo || '-'} | Class ${currentStudent.studentClass || '-'}`;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3200);
+        }
+
+        async function verifyFoodWithGemini(userOrder) {
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const systemPrompt = `You are a warm, encouraging English language teacher and master culinary judge for the ESL educational game "Say to Get It!".
+Analyze the student's spoken or typed order in English.
+Task:
+1. Determine if the requested item is real edible food, drink, dessert, ingredient, meal, or beverage.
+   - If edible (e.g., "pancakes", "iced mocha", "sushi rolls", "apple pie", "fried noodles"): set "isFood": true.
+   - If non-food or inedible (e.g., "shoes", "wooden chair", "laptop", "plastic bag", "car tire", "pencil"): set "isFood": false.
+2. Provide an encouraging, pedagogical feedback sentence in English praising their vocabulary or explaining with good humor why the item cannot be eaten.
+3. Craft a polished, appetizing food photography prompt for an image generator.`;
+
+            const payload = {
+                contents: [{
+                    role: "user",
+                    parts: [{ text: `Analyze this student's order: "${userOrder}"` }]
+                }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "isFood": { "type": "BOOLEAN" },
+                            "standardFoodName": { "type": "STRING" },
+                            "category": { "type": "STRING" },
+                            "imagePrompt": { "type": "STRING" },
+                            "verdictComment": { "type": "STRING" }
+                        },
+                        required: ["isFood", "standardFoodName", "category", "imagePrompt", "verdictComment"]
+                    }
+                }
+            };
+
+            let delay = 1000;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const rawJson = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (rawJson) {
+                            return JSON.parse(rawJson);
+                        }
+                    }
+                } catch (err) {
+                    // Backoff quietly
+                }
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+
+            // Heuristic fallback
+            const nonFoodKeywords = /shoe|rock|stone|chair|table|car|airplane|phone|laptop|plastic|garbage|pencil|book/i;
+            const isNonFood = nonFoodKeywords.test(userOrder);
+            return {
+                isFood: !isNonFood,
+                standardFoodName: userOrder,
+                category: isNonFood ? "Non-edible Object" : "Culinary Dish",
+                imagePrompt: `A detailed photo of ${userOrder}`,
+                verdictComment: !isNonFood 
+                    ? `Great English vocabulary! "${userOrder}" is a delicious dish.` 
+                    : `"${userOrder}" is not edible! Try practicing with real food names in English.`
+            };
+        }
+
+        async function generateDishImage(promptText, isFood) {
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+
+            const visualPrompt = isFood 
+                ? `Delicious, mouth-watering professional culinary photography of: ${promptText}. Gourmet Michelin restaurant plating on a ceramic dish, warm restaurant lighting, shallow depth of field, 4k food styling.`
+                : `A surreal, high quality studio photograph of: ${promptText} humorously placed on a clean restaurant plate with silverware, witty conceptual art.`;
+
+            const payload = {
+                contents: [{
+                    role: 'user',
+                    parts: [{ text: visualPrompt }]
+                }],
+                generationConfig: {
+                    responseModalities: ['IMAGE'],
+                    imageConfig: { aspectRatio: "1:1" }
+                }
+            };
+
+            let delay = 1200;
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const result = await response.json();
+                        const part = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                        if (part && part.inlineData?.data) {
+                            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+                        }
+                    }
+                } catch (err) {
+                    // Retry silently
+                }
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+
+            return createPlaceholderSvg(promptText, isFood);
+        }
+
+        function createPlaceholderSvg(title, isFood) {
+            const bgColor = isFood ? '#f97316' : '#64748b';
+            const icon = isFood ? '🍲' : '📦';
+            const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+                <defs>
+                    <radialGradient id="grad" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="${bgColor}" stop-opacity="0.85"/>
+                        <stop offset="100%" stop-color="#0b1120" stop-opacity="1"/>
+                    </radialGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grad)"/>
+                <circle cx="250" cy="250" r="140" fill="#ffffff" fill-opacity="0.1" stroke="#ffffff" stroke-width="4" stroke-dasharray="8 8"/>
+                <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-size="72">${icon}</text>
+                <text x="50%" y="65%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-size="22" font-family="sans-serif" font-weight="bold">${title}</text>
+            </svg>`;
+            return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
+        async function submitFoodOrder() {
+            if (gameState.isCooking) return;
+
+            const orderText = document.getElementById('orderInput').value.trim();
+            if (!orderText) {
+                showToast("⚠️ Please speak into the mic or type an English food item first!");
+                document.getElementById('orderInput').focus();
+                return;
+            }
+
+            if (gameState.currentScore >= gameState.targetScore) {
+                showToast("🏆 You have already conquered 3 plates! Start a new quest.");
+                return;
+            }
+
+            setCookingState(true, orderText);
+
+            try {
+                document.getElementById('cookingSubtext').textContent = `Evaluating English vocabulary for "${orderText}"...`;
+                const judgeResult = await verifyFoodWithGemini(orderText);
+
+                document.getElementById('cookingSubtext').textContent = `Chef is preparing and plating your dish...`;
+                const imageUrl = await generateDishImage(judgeResult.imagePrompt || orderText, judgeResult.isFood);
+
+                processOrderOutcome(orderText, judgeResult, imageUrl);
+
+            } catch (err) {
+                console.error("Order error:", err);
+                showToast("An error occurred while preparing your dish. Please try again!");
+                setCookingState(false);
+            }
+        }
+
+        function setCookingState(isCooking, orderText = '') {
+            gameState.isCooking = isCooking;
+            const submitBtn = document.getElementById('orderSubmitBtn');
+            const idleState = document.getElementById('dishIdleState');
+            const loadingState = document.getElementById('dishLoadingState');
+            const resultState = document.getElementById('dishResultState');
+            const kitchenBadge = document.getElementById('kitchenStatusBadge');
+
+            if (isCooking) {
+                submitBtn.disabled = true;
+                idleState.classList.add('hidden');
+                resultState.classList.add('hidden');
+                loadingState.classList.remove('hidden');
+
+                kitchenBadge.textContent = "Cooking in Kitchen...";
+                kitchenBadge.className = "text-xs px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 font-semibold border border-orange-500/30 animate-pulse";
+                document.getElementById('cookingPromptTitle').textContent = `Preparing: "${orderText}"`;
+            } else {
+                submitBtn.disabled = false;
+                loadingState.classList.add('hidden');
+                kitchenBadge.textContent = "Ready for Next Order";
+                kitchenBadge.className = "text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 font-medium";
+            }
+        }
+
+        function processOrderOutcome(spokenText, judgeResult, imageUrl) {
+            gameState.attempts++;
+            document.getElementById('attemptCounter').textContent = `Total Orders: ${gameState.attempts}`;
+
+            const isFood = judgeResult.isFood;
+            const resultImg = document.getElementById('dishResultImg');
+            const resultState = document.getElementById('dishResultState');
+            const verdictBadge = document.getElementById('verdictBadge');
+            const dishOrderTitle = document.getElementById('dishOrderTitle');
+            const chefVerdictBox = document.getElementById('chefVerdictBox');
+            const chefAvatar = document.getElementById('chefAvatar');
+            const chefVerdictTitle = document.getElementById('chefVerdictTitle');
+            const chefVerdictMsg = document.getElementById('chefVerdictMsg');
+
+            resultImg.src = imageUrl;
+            dishOrderTitle.textContent = spokenText;
+            chefVerdictMsg.textContent = judgeResult.verdictComment || (isFood ? "Delicious dish served!" : "This item cannot be consumed!");
+
+            if (isFood) {
+                Sound.success();
+                verdictBadge.className = "absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md flex items-center gap-1.5 bg-emerald-500/90 text-white border border-emerald-400/50";
+                verdictBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i> Order Approved (+1 Plate)`;
+
+                chefVerdictBox.className = "w-full mt-4 p-3.5 rounded-2xl text-left border flex items-start gap-3 text-xs bg-emerald-950/40 border-emerald-600/30 text-emerald-200";
+                chefAvatar.className = "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold bg-emerald-500 text-slate-950";
+                chefVerdictTitle.textContent = "Chef's Praise:";
+                chefVerdictTitle.className = "font-bold text-emerald-400";
+
+                gameState.currentScore++;
+                gameState.successfulDishes.push({
+                    dishName: spokenText,
+                    imageUrl: imageUrl,
+                    category: judgeResult.category || "Food & Drink",
+                    comment: judgeResult.verdictComment
+                });
+
+                updateScoreAndPlates();
+                showToast(`🎉 Success! "${spokenText}" added to your banquet!`);
+
+                if (gameState.currentScore >= gameState.targetScore) {
+                    // Auto submit student work to teacher repository
+                    saveStudentSubmissionToTeacherRepository();
+
+                    setTimeout(() => {
+                        triggerVictory();
+                    }, 1200);
+                }
+
+            } else {
+                Sound.fail();
+                verdictBadge.className = "absolute top-3 right-3 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md flex items-center gap-1.5 bg-rose-600/90 text-white border border-rose-400/50";
+                verdictBadge.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> Not Edible Food (0 Points)`;
+
+                chefVerdictBox.className = "w-full mt-4 p-3.5 rounded-2xl text-left border flex items-start gap-3 text-xs bg-rose-950/40 border-rose-600/30 text-rose-200";
+                chefAvatar.className = "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold bg-rose-600 text-white";
+                chefVerdictTitle.textContent = "Chef's Notice:";
+                chefVerdictTitle.className = "font-bold text-rose-400";
+
+                showToast(`❌ "${spokenText}" is not edible! Try naming a delicious food in English.`);
+            }
+
+            setCookingState(false);
+            resultState.classList.remove('hidden');
+        }
+
+        function updateScoreAndPlates() {
+            const scoreText = document.getElementById('scoreText');
+            scoreText.textContent = gameState.currentScore;
+            
+            const remaining = Math.max(0, gameState.targetScore - gameState.currentScore);
+            document.getElementById('neededRemaining').textContent = remaining;
+
+            for (let i = 1; i <= 3; i++) {
+                const slot = document.getElementById(`plateSlot${i}`);
+                const badge = slot.querySelector('.plate-badge');
+                const icon = slot.querySelector('i');
+
+                if (i <= gameState.successfulDishes.length) {
+                    const dish = gameState.successfulDishes[i - 1];
+                    slot.classList.remove('border-dashed', 'border-slate-700', 'bg-slate-800/60');
+                    slot.classList.add('border-solid', 'border-emerald-500', 'shadow-lg', 'shadow-emerald-500/20');
+                    icon.classList.add('hidden');
+                    
+                    badge.classList.remove('hidden');
+                    badge.style.backgroundImage = `url('${dish.imageUrl}')`;
+                    badge.title = dish.dishName;
+                } else {
+                    slot.classList.add('border-dashed', 'border-slate-700', 'bg-slate-800/60');
+                    slot.classList.remove('border-solid', 'border-emerald-500', 'shadow-lg', 'shadow-emerald-500/20');
+                    icon.classList.remove('hidden');
+                    badge.classList.add('hidden');
+                }
+            }
+
+            renderGallery();
+        }
+
+        function renderGallery() {
+            const container = document.getElementById('dishesGallery');
+            container.innerHTML = '';
+
+            for (let i = 0; i < 3; i++) {
+                if (i < gameState.successfulDishes.length) {
+                    const dish = gameState.successfulDishes[i];
+                    const card = document.createElement('div');
+                    card.className = "rounded-2xl border border-emerald-500/40 bg-slate-900/80 overflow-hidden shadow-lg flex items-center p-2.5 gap-3 transition-all hover:border-emerald-400";
+                    card.innerHTML = `
+                        <div class="w-16 h-16 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-slate-700">
+                            <img src="${dish.imageUrl}" alt="${dish.dishName}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="overflow-hidden text-left">
+                            <div class="flex items-center gap-1 text-[10px] text-emerald-400 font-semibold uppercase">
+                                <i class="fa-solid fa-check"></i> Course #${i + 1}
+                            </div>
+                            <div class="font-bold text-white text-sm truncate" title="${dish.dishName}">${dish.dishName}</div>
+                            <div class="text-[11px] text-slate-400 truncate">${dish.category || 'Gourmet Dish'}</div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                } else {
+                    const emptyCard = document.createElement('div');
+                    emptyCard.className = "rounded-2xl border-2 border-dashed border-slate-800 p-4 flex flex-col items-center justify-center text-center h-24 bg-slate-900/30 text-slate-600";
+                    emptyCard.innerHTML = `
+                        <i class="fa-solid fa-utensils text-xl mb-1"></i>
+                        <span class="text-xs font-light">Dish #${i + 1} Pending</span>
+                    `;
+                    container.appendChild(emptyCard);
+                }
+            }
+        }
+
+        function triggerVictory() {
+            Sound.victory();
+
+            if (typeof confetti === 'function') {
+                const count = 200;
+                const defaults = { origin: { y: 0.7 } };
+
+                function fire(particleRatio, opts) {
+                    confetti(Object.assign({}, defaults, opts, {
+                        particleCount: Math.floor(count * particleRatio)
+                    }));
+                }
+
+                fire(0.25, { spread: 26, startVelocity: 55 });
+                fire(0.2, { spread: 60 });
+                fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+                fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+                fire(0.1, { spread: 120, startVelocity: 45 });
+            }
+
+            const collage = document.getElementById('winningDishesCollage');
+            collage.innerHTML = '';
+            gameState.successfulDishes.forEach((dish) => {
+                const item = document.createElement('div');
+                item.className = "flex flex-col items-center";
+                item.innerHTML = `
+                    <div class="w-20 h-20 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-lg bg-black">
+                        <img src="${dish.imageUrl}" alt="${dish.dishName}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="text-[11px] text-white font-medium mt-1 max-w-[80px] truncate" title="${dish.dishName}">${dish.dishName}</span>
+                `;
+                collage.appendChild(item);
+            });
+
+            const modal = document.getElementById('victoryModal');
+            modal.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            document.getElementById('victoryModal').classList.add('hidden');
+            resetGameState();
+            showToast("🎮 New English quest started! Speak your order.");
+        }
+
+        function openResetModal() {
+            document.getElementById('confirmResetModal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('confirmResetModal').classList.add('hidden');
+        }
+
+        function confirmResetAction() {
+            closeResetModal();
+            resetGameState();
+            showToast("🔄 Game has been reset.");
+        }
+
+        function resetGameState() {
+            gameState.currentScore = 0;
+            gameState.attempts = 0;
+            gameState.successfulDishes = [];
+            gameState.isCooking = false;
+
+            document.getElementById('scoreText').textContent = "0";
+            document.getElementById('attemptCounter').textContent = "Total Orders: 0";
+            document.getElementById('neededRemaining').textContent = "3";
+            document.getElementById('orderInput').value = '';
+            checkInputState();
+
+            document.getElementById('dishIdleState').classList.remove('hidden');
+            document.getElementById('dishLoadingState').classList.add('hidden');
+            document.getElementById('dishResultState').classList.add('hidden');
+            document.getElementById('kitchenStatusBadge').textContent = "Awaiting Order";
+            document.getElementById('kitchenStatusBadge').className = "text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 font-medium";
+
+            updateScoreAndPlates();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSpeechRecognition();
+            updateScoreAndPlates();
+            
+            // Check if student has registered their name & number
+            if (!currentStudent.isRegistered) {
+                document.getElementById('studentRegistrationModal').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
